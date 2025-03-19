@@ -1,6 +1,6 @@
 - 👋 Hi, I’m @ArturSabanadze
-- 👀 I’m interested in Web Developing, Software Development
-- 🌱 I’m currently studing IT Specialist for Application Development
-- 💞️ I’m looking to collaborate on any Project that would bring me more expirience in Software Development
+- 👀 I’m interested in Web Development / App Development
+- 🌱 IT Specialist in Application Development (CBW College, Munich) | Passionate about coding, problem-solving, and building scalable applications.
+- 💞️ Open to collaborating on projects to gain hands-on experience in software development.
 - 📫 You can reach me by sending me an invite to your project repository
 
