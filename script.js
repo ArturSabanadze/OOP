@@ -1,127 +1,135 @@
-
-class User {
+export class User {
     #id;
     #name;
     #email;
     #username;
-    #passwordHash;
+    #password;
 
-    constructor(id, name, email, username, passwordHash) {
+    constructor(id, name, email, username, password) {
         this.#id = id;
         this.#name = name;
         this.#email = email;
         this.#username = username;
-        this.#passwordHash = passwordHash;
-    }   
+        this.#password = password;
+    }
 
-    // Getters
     getId() { return this.#id; }
     getName() { return this.#name; }
     getEmail() { return this.#email; }
     getUsername() { return this.#username; }
-    getPassword() { return this.#passwordHash; }
+    getPassword() { return this.#password; }
 
-    // Setters
     setId(newId) { this.#id = newId; }
-    setName(newName) { this.#name = newName; }
-    setEmail(newEmail) { this.#email = newEmail; }
-    setUsername(newUsername) { this.#username = newUsername; }
-    setPassword(newPassword) { this.#passwordHash = newPassword; }
 
     toJSON() {
         return {
             id: this.#id,
             name: this.#name,
             email: this.#email,
-            username: this.#username,
-            passwordHash: this.#passwordHash
+            username: this.#username
         };
     }
 }
 
-class AuthManager {
-
-    constructor(database) {
+export class AuthManager {
+    constructor(database, RegContainerId, LogContainerId) {
         this.database = database;
+        this.registerForm = null;
+        this.loginForm = null;
+        this.RegContainerId = RegContainerId;
+        this.LogContainerId = LogContainerId;
     }
 
-    getDatabase() {
-        return this.database;
+    generateRegisterForm() {
+        const container = document.getElementById(this.RegContainerId);
+        if (!container) return;
+
+        container.innerHTML = `
+            <form id="registerForm">
+                <input type="text" id="name" name="name" placeholder="Name" required /><br />
+                <input type="email" id="email" name="email" placeholder="Email" required /><br />
+                <input type="text" id="username" name="username" placeholder="Username" required /><br />
+                <input type="password" id="password" name="password" placeholder="Password" required /><br />
+                <button type="submit">Register</button>
+            </form>
+        `;
+
+        this.registerForm = document.getElementById("registerForm");
     }
 
-    register(user) {
-        const usernameExists = this.database.find(u => u.getUsername() === user.getUsername());
-        const emailExists = this.database.find(u => u.getEmail() === user.getEmail());
-        const idExists = this.database.some(u => u.getId() === user.getId());
+    generateLoginForm() {
+        const container = document.getElementById( this.LogContainerId);
+        if (!container) return;
+
+        container.innerHTML = `
+            <form id="loginForm">
+                <input type="text" id="usernameLogin" name="usernameLogin" placeholder="Username" required /><br />
+                <input type="password" id="passwordLogin" name="passwordLogin" placeholder="Password" required /><br />
+                <button type="submit">Login</button>
+            </form>
+        `;
+
+        this.loginForm = document.getElementById("loginForm");
+    }
+
+    init() {
+        if (this.registerForm) {
+            this.registerForm.addEventListener("submit", (e) => this.handleRegister(e));
+        }
+
+        if (this.loginForm) {
+            this.loginForm.addEventListener("submit", (e) => this.handleLogin(e));
+        }
+    }
+
+    handleRegister(e) {
+        e.preventDefault();
+        const form = e.target;
+
+        const newUser = new User(
+            this.database.length + 1,
+            form.name.value,
+            form.email.value,
+            form.username.value,
+            form.password.value
+        );
+
+        const usernameExists = this.database.find(u => u.getUsername() === newUser.getUsername());
+        const emailExists = this.database.find(u => u.getEmail() === newUser.getEmail());
 
         if (usernameExists || emailExists) {
-            throw new Error("User already exists.");
-        }
- 
-        if (idExists) {
-            user.setId(this.database.length + 1);
+            console.log("User already exists.");
+            return;
         }
 
-        this.database.push(user);
-        return true;
+        this.database.push(newUser);
+        console.log("✅ User registered:", newUser.toJSON());
     }
 
-    login(username, password) {
-        const user = this.database.find(u => u.getUsername() === username);
-        if (!user || user.getPassword() !== password) {
-            console.log("User not found or invalid credentials");
+    handleLogin(e) {
+        e.preventDefault();
+        const form = e.target;
+
+        const username = form.usernameLogin.value;
+        const password = form.passwordLogin.value;
+
+        const user = this.database.find(u => u.getUsername() === username && u.getPassword() === password);
+
+        if (user) {
+            console.log("✅ Login successful:", user.toJSON());
+        } else {
+            console.log("❌ Login failed: Invalid credentials");
         }
-    
-        return user;
     }
-    
+
+    formCreator() {
+        document.addEventListener("DOMContentLoaded", () => {
+            this.generateRegisterForm(); 
+            this.generateLoginForm(); 
+            this.init(); 
+        });
+    }
 }
 
-let DB = [];
-const AdminManager = new AuthManager(DB);
+export default AuthManager;
 
-//Event listner for Registration form
-document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('registerForm');
-
-    form.addEventListener('submit', (e) => {
-        e.preventDefault(); // Prevent default form behavior
-
-        const id = 1;
-        const name = document.getElementById('name').value;
-        const email = document.getElementById('email').value;
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-
-        const newUser = new User(id, name, email, username, password);
-        
-        const success = AdminManager.register(newUser);
-
-        if (success) {
-                console.log("User registered:", newUser.toJSON());
-                console.log("Database:", AdminManager.getDatabase());
-        } else {
-                console.log("Registration failed");
-        }
-    });
-});
-
-//Event listner for Login form
-document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('LoginForm');
-
-    form.addEventListener('submit', (e) => {
-        e.preventDefault(); // Prevent default form behavior
-
-        const username = document.getElementById('usernameLogin').value;
-        const password = document.getElementById('passwordLogin').value;
-        
-        const login = AdminManager.login(username, password);
-
-        if (login) {
-                console.log("Login successfull");
-        } else {
-                console.log("Login failed");
-        }
-    });
-});
