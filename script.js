@@ -22,11 +22,27 @@ export class User {
     setId(newId) { this.#id = newId; }
 
     toJSON() {
+    return {
+        id: this.#id,
+        name: this.#name,
+        email: this.#email,
+        username: this.#username
+    };
+    }
+}
+
+class Admin extends User {
+    constructor(id, name, email, username, password) {
+        super(id, name, email, username, password);
+    }
+
+    toJSON() {
         return {
-            id: this.#id,
-            name: this.#name,
-            email: this.#email,
-            username: this.#username
+            id: this.getId(),
+            name: this.getName(),
+            email: this.getEmail(),
+            username: this.getUsername(),
+            password: this.getPassword()
         };
     }
 }
